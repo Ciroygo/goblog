@@ -6,7 +6,14 @@ import (
 )
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello, by ciroygoasdfsa12312312saf")
+	if r.URL.Path == "/" {
+		fmt.Fprintf(w, "hellp. by ciroygo")
+	} else if r.URL.Path == "/about" {
+		fmt.Fprintf(w, "about page")
+	} else {
+		fmt.Fprint(w, "<h1>请求页面未找到 :(</h1>"+
+		"<p>如有疑惑，请联系我们。</p>")
+	}
 }
 
 func main() {
