@@ -7,7 +7,7 @@ import (
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
-		fmt.Fprintf(w, "hellp. by ciroygo")
+		fmt.Fprintf(w, "hellp. by ciroygo112313")
 	} else if r.URL.Path == "/about" {
 		fmt.Fprintf(w, "about page")
 	} else {
