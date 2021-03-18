@@ -21,3 +21,15 @@
 
 todo 4.4 0305
 
+
+## 第五章
+
+### 5.5 模版语法
+
+### `{{ }}`
+### with 关键字
+
+```golang
+{{ with pipeline }} T1 {{ end }}
+{{ with pipeline }} T1 {{ else }} T0 {{ end }}
+```
