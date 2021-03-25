@@ -1,10 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
+	"time"
 	"unicode/utf8"
 
 	"github.com/gorilla/mux"
@@ -12,7 +16,7 @@ import (
 )
 
 var router = mux.NewRouter()
-
+var db *sql.DB
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Hello, 欢迎来到 goblog！123123</h1>")
 }
@@ -117,6 +121,8 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	initDB()
+
 	router.HandleFunc("/", homeHandler).Methods("GET").Name("home")
 	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
 
@@ -137,4 +143,32 @@ func main() {
 	fmt.Println("articleURL: ", articleURL)
 
 	http.ListenAndServe(":3000", router)
+}
+
+func initDB()  {
+	var err error
+	config := mysql.Config{
+		User: "root",
+		Passwd: "Landy552",
+		Addr: "sh-cdb-iti0tmqw.sql.tencentcdb.com",
+		Net: "tcp",
+		DBName: "ciroy_maker",
+		AllowNativePasswords: true,
+	}
+
+	db, err = sql.Open("mysql", config.FormatDSN())
+	checkError(err)
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	err = db.Ping()
+	checkError(err)
+}
+
+func checkError(err error)  {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
