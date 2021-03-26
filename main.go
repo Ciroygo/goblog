@@ -11,12 +11,13 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gorilla/mux"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 var router = mux.NewRouter()
 var db *sql.DB
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Hello, 欢迎来到 goblog！123123</h1>")
 }
@@ -106,9 +107,9 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 	storeURL, _ := router.Get("articles.store").URL()
 
 	data := ArticlesFormData{
-		Title: "",
-		Body: "",
-		URL: storeURL,
+		Title:  "",
+		Body:   "",
+		URL:    storeURL,
 		Errors: nil,
 	}
 
@@ -122,6 +123,7 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	initDB()
+	createTables()
 
 	router.HandleFunc("/", homeHandler).Methods("GET").Name("home")
 	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
@@ -145,30 +147,45 @@ func main() {
 	http.ListenAndServe(":3000", router)
 }
 
-func initDB()  {
+func initDB() {
 	var err error
 	config := mysql.Config{
-		User: "root",
-		Passwd: "Landy552",
-		Addr: "sh-cdb-iti0tmqw.sql.tencentcdb.com",
-		Net: "tcp",
-		DBName: "ciroy_maker",
+		User:                 "root",
+		Passwd:               "Landy552",
+		Addr:                 "sh-cdb-iti0tmqw.sql.tencentcdb.com:60874",
+		Net:                  "tcp",
+		DBName:               "ciroy_maker",
 		AllowNativePasswords: true,
 	}
 
+	fmt.Println(config.FormatDSN())
+
 	db, err = sql.Open("mysql", config.FormatDSN())
+
 	checkError(err)
 
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
+	// 尝试连接，失败报错
 	err = db.Ping()
 	checkError(err)
 }
 
-func checkError(err error)  {
+func checkError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func createTables() {
+	createArticlesSQL := `CREATE TABLE IF NOT EXISTS articles(
+	id bigint(20) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+	title varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+	body longtext COLLATE utf8mb4_unicode_ci
+);`
+
+	_, err := db.Exec(createArticlesSQL)
+	checkError(err)
 }
