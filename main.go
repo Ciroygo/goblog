@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -70,11 +71,16 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(errors) == 0 {
-		fmt.Fprint(w, "验证通过!<br>")
-		fmt.Fprintf(w, "title 的值为: %v <br>", title)
-		fmt.Fprintf(w, "title 的长度为: %v <br>", len(title))
-		fmt.Fprintf(w, "body 的值为: %v <br>", body)
-		fmt.Fprintf(w, "body 的长度为: %v <br>", len(body))
+		lastInsertID, err := saveArticleToDB(title, body)
+
+		if lastInsertID > 0 {
+			fmt.Fprint(w, "插入成功，ID为"+strconv.FormatInt(lastInsertID, 10))
+		} else {
+			checkError(err)
+
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误ciroy")
+		}
 	} else {
 		storeURL, _ := router.Get("articles.store").URL()
 
@@ -92,6 +98,33 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 
 		tmpl.Execute(w, data)
 	}
+}
+
+func saveArticleToDB(title string, body string) (int64, error) {
+	var (
+		id   int64
+		err  error
+		rs   sql.Result
+		stmt *sql.Stmt
+	)
+
+	stmt, err = db.Prepare("INSERT into articles(title,body) values(?,?)")
+	if err != nil {
+		return 0, err
+	}
+
+	defer stmt.Close()
+
+	rs, err = stmt.Exec(title, body)
+	if err != nil {
+		return 0, err
+	}
+
+	if id, err = rs.LastInsertId(); id > 0 {
+		return id, nil
+	}
+
+	return 0, err
 }
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
