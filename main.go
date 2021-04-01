@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
+	"goblog/pkg/database"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 	"unicode/utf8"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -219,8 +218,8 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	initDB()
-	createTables()
+	database.Initialize()
+	db = database.DB
 
 	route.Initialize()
 	router = route.Router
@@ -389,41 +388,4 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.Execute(w, data)
 
-}
-
-func initDB() {
-	var err error
-	config := mysql.Config{
-		User:                 "root",
-		Passwd:               "Landy552",
-		Addr:                 "sh-cdb-iti0tmqw.sql.tencentcdb.com:60874",
-		Net:                  "tcp",
-		DBName:               "ciroy_maker",
-		AllowNativePasswords: true,
-	}
-
-	fmt.Println(config.FormatDSN())
-
-	db, err = sql.Open("mysql", config.FormatDSN())
-
-	logger.LogError(err)
-
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
-	db.SetConnMaxLifetime(5 * time.Minute)
-
-	// 尝试连接，失败报错
-	err = db.Ping()
-	logger.LogError(err)
-}
-
-func createTables() {
-	createArticlesSQL := `CREATE TABLE IF NOT EXISTS articles(
-	id bigint(20) PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	title varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-	body longtext COLLATE utf8mb4_unicode_ci
-);`
-
-	_, err := db.Exec(createArticlesSQL)
-	logger.LogError(err)
 }
