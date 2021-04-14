@@ -1,11 +1,12 @@
 package main
 
 import (
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"goblog/app/http/middlewares"
 	"goblog/bootstrap"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 var router = mux.NewRouter()
