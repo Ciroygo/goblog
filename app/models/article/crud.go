@@ -27,6 +27,18 @@ func GetAll() ([]Article, error) {
 	return articles, nil
 }
 
+
+func (article Article) Update() (rowsAffected int64, err error) {
+	result := model.DB.Save(&article)
+
+	if err = result.Error; err != nil {
+		logger.LogError(err)
+		return 0, err
+	}
+
+	return result.RowsAffected, nil
+}
+
 func (a *Article) Create() (err error) {
 
 	if err = model.DB.Create(&a).Error; err != nil {
