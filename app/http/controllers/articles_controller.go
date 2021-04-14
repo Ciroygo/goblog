@@ -5,12 +5,10 @@ import (
 	"goblog/app/models/article"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
-	"goblog/pkg/types"
+	"goblog/pkg/view"
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
-	"path/filepath"
-	"strconv"
 	"unicode/utf8"
 )
 
@@ -26,17 +24,7 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "500 服务器内部错误")
 	} else {
-		viewDir := "resources/views"
-
-		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
-
-		newFiles := append(files, viewDir+"/articles/index.gohtml")
-
-		tmpl, err := template.ParseFiles(newFiles...)
-
-		logger.LogError(err)
-
-		tmpl.ExecuteTemplate(w, "app", articles)
+		view.Render(w, "articles.index", articles)
 	}
 }
 
@@ -58,21 +46,23 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 
-		viewDir := "resources/views"
+		view.Render(w, "articles.show", article)
 
-		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
-		logger.LogError(err)
-
-		newFiles := append(files, viewDir+"/articles/show.gohtml")
-
-		tmpl, err := template.New("show.gohtml").Funcs(template.FuncMap{
-			"RouteName2URL": route.Name2URL,
-			"Int64ToString": types.Int64ToString,
-		}).ParseFiles(newFiles...)
-
-		logger.LogError(err)
-
-		tmpl.ExecuteTemplate(w, "app", article)
+		//viewDir := "resources/views"
+		//
+		//files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
+		//logger.LogError(err)
+		//
+		//newFiles := append(files, viewDir+"/articles/show.gohtml")
+		//
+		//tmpl, err := template.New("show.gohtml").Funcs(template.FuncMap{
+		//	"RouteName2URL": route.Name2URL,
+		//	"Int64ToString": types.Int64ToString,
+		//}).ParseFiles(newFiles...)
+		//
+		//logger.LogError(err)
+		//
+		//tmpl.ExecuteTemplate(w, "app", article)
 	}
 }
 
@@ -133,7 +123,7 @@ func (c *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		_article.Create()
 
 		if _article.ID > 0 {
-			fmt.Fprint(w, "插入成功，ID为"+strconv.FormatInt(int64(_article.ID), 10))
+			fmt.Fprint(w, "插入成功，ID为"+_article.GetStringID())
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "500 服务器内部错误ciroy")

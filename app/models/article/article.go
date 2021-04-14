@@ -1,13 +1,15 @@
 package article
 
 import (
+	"goblog/app/models"
 	"goblog/pkg/route"
 	"goblog/pkg/types"
 	"strconv"
 )
 
 type Article struct {
-	ID    int
+	models.BaseModel
+
 	Title string
 	Body  string
 }
