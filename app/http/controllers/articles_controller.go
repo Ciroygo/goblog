@@ -9,13 +9,15 @@ import (
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
+	"strconv"
+	"unicode/utf8"
 )
 
 // ArticlesController 文章相关
 type ArticlesController struct {
 }
 
-func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request)  {
+func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 	articles, err := article.GetAll()
 
 	if err != nil {
@@ -57,5 +59,86 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 		logger.LogError(err)
 
 		tmpl.Execute(w, article)
+	}
+}
+
+type ArticlesFormData struct {
+	Title, Body string
+	URL         string
+	Errors      map[string]string
+}
+
+// 文章保存
+func (c *ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
+	storeURL := route.Name2URL("articles.store")
+
+	data := ArticlesFormData{
+		Title:  "",
+		Body:   "",
+		URL:    storeURL,
+		Errors: nil,
+	}
+
+	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+	if err != nil {
+		panic(err)
+	}
+
+	tmpl.Execute(w, data)
+}
+
+func validateArticleFormData(title string, body string) map[string]string  {
+	errors := make(map[string]string)
+
+	if title == "" {
+		errors["title"] = "标题不能为空"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40{
+		errors["title"] = "长度只能在3-40个之间"
+	}
+
+	if body == "" {
+		errors["body"] = "内容不能为空"
+	} else if utf8.RuneCountInString(body) < 10{
+		errors["title"] = "内容需要大于10哥字"
+	}
+
+	return errors
+}
+
+func (c *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
+	title := r.PostFormValue("title")
+	body := r.PostFormValue("body")
+
+	errors := validateArticleFormData(title, body)
+
+	if len(errors) == 0 {
+		_article := article.Article{
+			Title: title,
+			Body: body,
+		}
+		_article.Create()
+
+		if _article.ID > 0 {
+			fmt.Fprint(w, "插入成功，ID为"+strconv.FormatInt(int64(_article.ID), 10))
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误ciroy")
+		}
+	} else {
+		storeURL := route.Name2URL("articles.store")
+
+		data := ArticlesFormData{
+			Title:  title,
+			Body:   body,
+			URL:    storeURL,
+			Errors: errors,
+		}
+
+		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+		if err != nil {
+			panic(err)
+		}
+
+		tmpl.Execute(w, data)
 	}
 }
