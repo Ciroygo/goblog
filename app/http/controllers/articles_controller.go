@@ -87,18 +87,18 @@ func (c *ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
-func validateArticleFormData(title string, body string) map[string]string  {
+func validateArticleFormData(title string, body string) map[string]string {
 	errors := make(map[string]string)
 
 	if title == "" {
 		errors["title"] = "标题不能为空"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40{
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
 		errors["title"] = "长度只能在3-40个之间"
 	}
 
 	if body == "" {
 		errors["body"] = "内容不能为空"
-	} else if utf8.RuneCountInString(body) < 10{
+	} else if utf8.RuneCountInString(body) < 10 {
 		errors["title"] = "内容需要大于10哥字"
 	}
 
@@ -114,7 +114,7 @@ func (c *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	if len(errors) == 0 {
 		_article := article.Article{
 			Title: title,
-			Body: body,
+			Body:  body,
 		}
 		_article.Create()
 
@@ -162,9 +162,9 @@ func (c *ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 	updateURL := route.Name2URL("articles.update", "id", id)
 
 	data := ArticlesFormData{
-		Title: article.Title,
-		Body: article.Body,
-		URL: updateURL,
+		Title:  article.Title,
+		Body:   article.Body,
+		URL:    updateURL,
 		Errors: nil,
 	}
 
@@ -220,9 +220,9 @@ func (c *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 		updateURL := route.Name2URL("articles.update", "id", id)
 
 		data := ArticlesFormData{
-			Title: title,
-			Body: body,
-			URL: updateURL,
+			Title:  title,
+			Body:   body,
+			URL:    updateURL,
 			Errors: errors,
 		}
 
@@ -231,4 +231,40 @@ func (c *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 
 		tmpl.Execute(w, data)
 	}
+}
+
+func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request) {
+	id := route.GetRouteVariable("id", r)
+
+	article, err := article.Get(id)
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "404 文章没有找到")
+		} else {
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "500 服务器内部错误")
+		}
+
+		return
+	}
+
+	rowAffected, err := article.Delete()
+
+	if err != nil {
+		logger.LogError(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "500 删除遇到故障")
+		return
+	}
+
+	if rowAffected > 0 {
+		indexURL := route.Name2URL("articles.index")
+		http.Redirect(w, r, indexURL, http.StatusFound)
+	}
+
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprintf(w, "404 文章没哟找到")
 }

@@ -49,3 +49,14 @@ func (a *Article) Create() (err error) {
 
 	return nil
 }
+
+func (article *Article) Delete() (RowsAffected int64, err error)  {
+	result := model.DB.Delete(&article)
+
+	if err = result.Error; err != nil {
+		logger.LogError(err)
+		return 0, err
+	}
+
+	return result.RowsAffected, nil
+}
