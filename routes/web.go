@@ -1,19 +1,19 @@
 package routes
 
 import (
-	"github.com/gorilla/mux"
 	"goblog/app/http/controllers"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-func RegisterWebRoutes(r *mux.Router)  {
+func RegisterWebRoutes(r *mux.Router) {
 
 	// 静态页面
 	pc := new(controllers.PagesController)
 	r.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 	r.HandleFunc("/", pc.Home).Methods("GET").Name("home")
 	r.HandleFunc("/about", pc.About).Methods("GET").Name("about")
-
 
 	ac := new(controllers.ArticlesController)
 	r.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("articles.show")
@@ -24,6 +24,9 @@ func RegisterWebRoutes(r *mux.Router)  {
 	r.HandleFunc("/articles/{id:[0-9]+}", ac.Update).Methods("POST").Name("articles.update")
 	r.HandleFunc("/articles/{id:[0-9]+}/delete", ac.Delete).Methods("POST").Name("articles.delete")
 
+	auc := new(controllers.AuthController)
+	r.HandleFunc("/auth/register", auc.Register).Methods("GET").Name("auth.register")
+	r.HandleFunc("/auth/do-register", auc.DoRegister).Methods("POST").Name("auth.doregister")
 
 	r.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
 	r.PathPrefix("/js/").Handler(http.FileServer(http.Dir("./public")))
