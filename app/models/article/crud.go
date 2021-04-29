@@ -7,11 +7,11 @@ import (
 	"goblog/pkg/types"
 )
 
-func Get(idstr string) (Article, error)  {
+func Get(idstr string) (Article, error) {
 	var article Article
 	id := types.StringToInt(idstr)
 
-	if  err := model.DB.First(&article, id).Error; err != nil{
+	if err := model.DB.First(&article, id).Error; err != nil {
 		return article, err
 	}
 
@@ -26,7 +26,6 @@ func GetAll() ([]Article, error) {
 	}
 	return articles, nil
 }
-
 
 func (article Article) Update() (rowsAffected int64, err error) {
 	result := model.DB.Save(&article)
@@ -50,7 +49,7 @@ func (a *Article) Create() (err error) {
 	return nil
 }
 
-func (article *Article) Delete() (RowsAffected int64, err error)  {
+func (article *Article) Delete() (RowsAffected int64, err error) {
 	result := model.DB.Delete(&article)
 
 	if err = result.Error; err != nil {
