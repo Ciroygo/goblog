@@ -64,3 +64,12 @@ func (article *Article) Delete() (RowsAffected int64, err error) {
 func (a *Article) CreatedAtDate() string {
 	return a.CreatedAt.Format("2006-01-02")
 }
+
+// GetByUserID 获取全部文章
+func GetByUserID(uid string) ([]Article, error) {
+	var articles []Article
+	if err := model.DB.Where("user_id = ?", uid).Preload("User").Find(&articles).Error; err != nil {
+		return articles, err
+	}
+	return articles, nil
+}
