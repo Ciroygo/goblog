@@ -11,7 +11,7 @@ func Get(idstr string) (Article, error) {
 	var article Article
 	id := types.StringToInt(idstr)
 
-	if err := model.DB.First(&article, id).Error; err != nil {
+	if err := model.DB.Preload("User").First(&article, id).Error; err != nil {
 		return article, err
 	}
 
@@ -21,7 +21,7 @@ func Get(idstr string) (Article, error) {
 func GetAll() ([]Article, error) {
 	var articles []Article
 
-	if err := model.DB.Find(&articles).Error; err != nil {
+	if err := model.DB.Preload("User").Find(&articles).Error; err != nil {
 		return articles, err
 	}
 	return articles, nil
@@ -58,4 +58,9 @@ func (article *Article) Delete() (RowsAffected int64, err error) {
 	}
 
 	return result.RowsAffected, nil
+}
+
+// CreatedAtDate 创建日期
+func (a *Article) CreatedAtDate() string {
+	return a.CreatedAt.Format("2006-01-02")
 }
