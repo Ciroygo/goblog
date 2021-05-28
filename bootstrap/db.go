@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"goblog/app/models/article"
 	"goblog/app/models/user"
+	"goblog/pkg/config"
 	"goblog/pkg/model"
 	"time"
 
@@ -14,9 +15,9 @@ func SetupDB() {
 	db := model.ConnectDB()
 
 	sqlDB, _ := db.DB()
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetMaxIdleConns(25)
-	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	sqlDB.SetMaxOpenConns(config.GetInt("database.mysql.max_open_connections"))
+	sqlDB.SetMaxIdleConns(config.GetInt("database.mysql.max_idle_connections"))
+	sqlDB.SetConnMaxLifetime(time.Duration(config.GetInt("database.mysql.max_life_seconds")) * time.Second)
 
 	migration(db)
 }
